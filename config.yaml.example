@@ -1,0 +1,25 @@
+---
+  update_period: 30
+  sensor_types:
+    - ds18b20
+    - bme280
+    - sht3x
+  verbose: True
+
+  sensor_names:
+    "id00001": Living Room
+
+  mqtt:
+    broker:     mqtt-broker-hostname
+    port:       1883
+    username:   
+    password:   
+    ha_prefix:  homeassistant
+  
+  precision:
+    temperature:  1
+    pressure:     1
+    humidity:     0
+    proximity:    0
+    lux:          5
+...
