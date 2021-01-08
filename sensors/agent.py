@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os, sys, socket, traceback
-import json, yaml
+import json
 import time
 import paho.mqtt.client as mqtt
 from threading import Thread
@@ -24,11 +24,7 @@ class SensorAgent:
 
   def __init__(self, config):
     self.sensors = []
-    with open(config, 'r') as stream:
-      try:
-        self.config = yaml.safe_load(stream)
-      except yaml.YAMLError as error:
-        self.error(error)
+    self.config = config
 
   def info(self, message):
     if self.config['verbose'] == True:

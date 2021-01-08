@@ -1,4 +1,3 @@
-import sys
 from typing import Optional
 from sensirion_i2c_driver import I2cConnection
 from sensirion_i2c_sht.sht3x import Sht3xI2cDevice
