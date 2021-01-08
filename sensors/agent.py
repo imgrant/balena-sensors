@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import os, sys, socket, traceback
-import json
-import time
+import json, string, time
 import paho.mqtt.client as mqtt
 from threading import Thread
 from sensors import ds18b20, bme280, sht3x
@@ -93,9 +92,12 @@ class SensorAgent:
         self.publish_message(topic="sensors/{}/status".format(sensor.id), payload="online")
         readings = {}
         for measurement in sensor.supported_measurements:
-          p = self.config['precision'][measurement['name']]
           val = getattr(sensor, measurement['name'])
-          readings[measurement['name']] = round(val, p if p>0 else None)
+          if measurement['name'] in self.config['precision']['mqtt']:
+            p = self.config['precision']['mqtt'][measurement['name']]
+            readings[measurement['name']] = round(val, p if p>0 else None)
+          else:
+            readings[measurement['name']] = val
         self.info("Publishing readings for sensor {}: {}".format(sensor.id, ", ".join(['{0}={1}'.format(k, v) for k,v in readings.items()])))
         self.publish_message(topic="sensors/{}/state".format(sensor.id), payload=json.dumps(readings))
       time.sleep(self.config['update_period'])
@@ -115,7 +117,7 @@ class SensorAgent:
       device_info['manufacturer'] = sensor.manufacturer
       device_info['model']        = sensor.model
       device_info['via_device']   = os.environ.get('BALENA_DEVICE_NAME_AT_INIT')
-      device_info['name']         = friendly_name
+      device_info['name']         = "{} Environmental Sensor".format(friendly_name)
 
       for measurement in sensor.supported_measurements:
         uid = "{}--{}".format(sensor.id, measurement['name'])
@@ -127,8 +129,12 @@ class SensorAgent:
         config_data['device']               = device_info
         config_data['device_class']         = self.ha_sensor_class_map[measurement['name']]
         config_data['unit_of_measurement']  = measurement['units']
-        config_data['name']                 = "{} {}".format(friendly_name, measurement['name']).title()
-        config_data['value_template']       = "{{{{ value_json.{} }}}}".format(measurement['name'])
+        config_data['name']                 = string.capwords("{} {}".format(friendly_name, measurement['name']))
+        if measurement['name'] in self.config['precision']['ha']:
+          round_filter = " | round({})".format(self.config['precision']['ha'][measurement['name']])
+        else:
+          round_filter = ''
+        config_data['value_template']       = "{{{{ value_json.{}{} }}}}".format(measurement['name'], round_filter)
         config_data['force_update']         = True
         config_data['expire_after']         = int(self.config['update_period'])*2
         self.publish_message(topic=config_topic, payload=json.dumps(config_data, indent=2), qos=1, retain=True)
