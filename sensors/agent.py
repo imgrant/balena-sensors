@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-
 import os, sys, socket, traceback
-import json, string, time
+import json, time
 import paho.mqtt.client as mqtt
 from threading import Thread
 from sensors import ds18b20, bme280, sht3x
@@ -129,7 +128,7 @@ class SensorAgent:
         config_data['device']               = device_info
         config_data['device_class']         = self.ha_sensor_class_map[measurement['name']]
         config_data['unit_of_measurement']  = measurement['units']
-        config_data['name']                 = string.capwords("{} {}".format(friendly_name, measurement['name']))
+        config_data['name']                 = "{} {}".format(friendly_name, measurement['name'].title())
         if measurement['name'] in self.config['precision']['ha']:
           round_filter = " | round({})".format(self.config['precision']['ha'][measurement['name']])
         else:
