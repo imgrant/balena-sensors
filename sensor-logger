@@ -28,10 +28,10 @@ def main(args):
   update_period = os.environ.get('UPDATE_PERIOD')   # Number in seconds
   verbose       = os.environ.get('VERBOSE')         # Any pseudo-boolean string such as: yes, no, on, off, true, false, 1, 0
   sensor_types  = os.environ.get('SENSOR_TYPES')    # Comma-separated list of sensor types, e.g. 'ds18b20, bme280'
-  # sensor_name can be either a simple string (for single/all sensors),
-  # or a comma-separated list of id=name entries for multiple sensors,,
+  # location can be either a simple string (for single/all sensors),
+  # or a comma-separated list of id=location entries for multiple sensors,,
   # e.g. 'id0001=Bedroom,id002=Living Room'
-  sensor_name   = os.environ.get('SENSOR_NAME')
+  location      = os.environ.get('LOCATION')
   # Set the via_device to the Balena device hostname     
   balena_host   = os.environ.get('BALENA_DEVICE_NAME_AT_INIT')
 
@@ -59,11 +59,11 @@ def main(args):
   if sensor_types is not None:
     config['sensor_types'] = [ t.strip() for t in sensor_types.split(',') ]
 
-  if sensor_name is not None:
-    if '=' in sensor_name and ',' in sensor_name:
-      config['sensor_name'] = dict(i.strip().split('=') for i in sensor_name.split(','))
+  if location is not None:
+    if '=' in location and ',' in location:
+      config['sensor_location'] = dict(i.strip().split('=') for i in location.split(','))
     else:
-      config['sensor_name'] = str(sensor_name).strip()
+      config['sensor_location'] = str(location).strip()
 
   if balena_host is not None:
     config['host_device'] = balena_host

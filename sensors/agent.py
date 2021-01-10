@@ -21,16 +21,16 @@ class SensorAgent:
   }
 
   default_config = {
-    'update_period':  30,
-    'verbose':        True,
-    'host_device':    None,
-    'sensor_types':   [],   # Must be overriden with at least one sensor type module
-    'sensor_name':    None, # Can be a string, or dict with per-sensor entries, id->name
-    'mqtt_broker':    None, # Must be overridden
-    'mqtt_port':      1883,
-    'mqtt_username':  None,
-    'mqtt_password':  None,
-    'mqtt_ha_prefix': 'homeassistant',
+    'update_period':              30,
+    'verbose':                    True,
+    'host_device':                None,
+    'sensor_types':               [],    # Must be overriden with at least one sensor type module
+    'sensor_location':            None,  # Can be a string, or dict with per-sensor entries, id->location
+    'mqtt_broker':                None,  # Must be overridden
+    'mqtt_port':                  1883,
+    'mqtt_username':              None,
+    'mqtt_password':              None,
+    'mqtt_ha_prefix':             'homeassistant',
     'precision_mqtt_temperature': 3,
     'precision_mqtt_pressure':    2,
     'precision_mqtt_humidity':    2,
@@ -145,26 +145,31 @@ class SensorAgent:
       for measurement in sensor.supported_measurements:
         uid = "{}-{}".format(sensor.id, measurement['name'])
         config_topic = "{}/sensor/{}/{}/config".format(self.config['mqtt_ha_prefix'], sensor.id, uid)
+        attributes_topic = "sensors/{}/attributes".format(sensor.id)
+
         config_data = {}
         config_data['unique_id']              = uid
         config_data['state_topic']            = "sensors/{}/state".format(sensor.id)
         config_data['availability_topic']     = "sensors/{}/status".format(sensor.id)
-        config_data['json_attributes_topic']  = "sensors/{}/attributes".format(sensor.id)
+        config_data['json_attributes_topic']  = attributes_topic
         config_data['device']                 = device_info
         config_data['device_class']           = self.ha_sensor_class_map[measurement['name']]
         config_data['unit_of_measurement']    = measurement['units']
-        if self.config['sensor_name'] is not None:
-          if type(self.config['sensor_name']) is dict and sensor.id in self.config['sensor_name']:
-            sensor_name = str(self.config['sensor_name'][sensor.id])
-          else:
-            sensor_name = str(self.config['sensor_name'])
-        else:
-          sensor_name = "{} ({})".format(sensor.model, sensor.id)
-        config_data['name']                   = "{} {}".format(sensor_name, measurement['name'].title())
+        config_data['name']                   = "{} ({}) {}".format(sensor.model, sensor.id, measurement['name'].title())
         config_data['value_template']         = "{{{{ value_json.{} | round({}) }}}}".format(measurement['name'], self.config["precision_ha_{}".format(measurement['name'])])
         config_data['force_update']           = True
         config_data['expire_after']           = int(self.config['update_period'])*2
         self.publish_message(topic=config_topic, payload=json.dumps(config_data, indent=2), qos=1, retain=True)
+        
+        attr_data = {}
+        attr_data['serial_number']  = sensor.id
+        attr_data['type']           = sensor.model
+        if self.config['sensor_location'] is not None:
+          if type(self.config['sensor_location']) is dict and sensor.id in self.config['sensor_location']:
+            attr_data['location'] = str(self.config['sensor_location'][sensor.id])
+          else:
+            attr_data['location'] = str(self.config['sensor_location'])
+        self.publish_message(topic=attributes_topic, payload=json.dumps(attr_data, indent=2), qos=1, retain=True)
 
   def start(self):
     self.worker = Thread(target=self.update)
