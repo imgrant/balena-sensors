@@ -1,33 +1,31 @@
 ---
-  update_period: 30
-  sensor_types:
+  update_period: 30   # Sleep period, in seconds, between reading the sensors
+  sensor_types:       # List of sensor modules to load; at least one must be specified
     - ds18b20
     - bme280
     - sht3x
-  verbose: True
-  host_device: 
-
-  sensor_name:  # Optional, this can be a string (for a single sensor), or a dict of id->name entries for multiple sensors
+  verbose: True            # Set to false to quell informative output
+  host_device: mygateway   # Optional, name of the device that these sensors are routed via (e.g. a Z-Wave hub, etc)
+  sensor_name:   # Optional, this can be a string (for a single sensor), or a dict of id:name entries, for multiple sensors
     "id00001": Living Room
-
-  mqtt:
-    broker:     mqtt-broker-hostname  # This parameter is mandatory; defaults apply to all others
-    port:       1883
-    username:   
-    password:   
-    ha_prefix:  homeassistant
-  
-  precision:
-    mqtt:
-      temperature:  3
-      pressure:     2
-      humidity:     2
-      proximity:    0
-      lux:          5
-    ha:
-      temperature:  1
-      pressure:     2
-      humidity:     1
-      proximity:    0
-      lux:          5
+  mqtt_broker:     mqtt-broker-hostname   # Hostname or IP address of the MQTT broker. This parameter is mandatory; defaults apply to others
+  mqtt_port:       1883                   # Optional, if not using the default port (1883) on the MQTT broker
+  mqtt_username:   myuser                 # Optional, if your MQTT broker requires such
+  mqtt_password:   secret123              # Optional
+  mqtt_ha_prefix:  homeassistant          # Optional, adjust if you have changed the prefix in your Home Assistant
+  # Optional, specify the precision (decimal places) to use for
+  # each measurement, separately for the MQTT message and also
+  # in the Home Assistant template (note: it makes no sense to
+  # use a greater precision in Home Assistant than the underlying
+  # MQTT message)
+  precision_mqtt_temperature: 3
+  precision_mqtt_pressure:    2
+  precision_mqtt_humidity:    2
+  precision_mqtt_proximity:   0
+  precision_mqtt_lux:         5
+  precision_ha_temperature:   1
+  precision_ha_pressure:      2
+  precision_ha_humidity:      1
+  precision_ha_proximity:     0
+  precision_ha_lux:           5
 ...
