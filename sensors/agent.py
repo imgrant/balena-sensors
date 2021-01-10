@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 import os, sys, socket, traceback
-from ssl import ALERT_DESCRIPTION_DECODE_ERROR
-import json, time
-from typing import List
+import json, time, importlib
+from typing import List, Optional
 import paho.mqtt.client as mqtt
 from threading import Thread
-from sensors import ds18b20, bme280, sht3x
 from sensors.measurements import Measurement
 
 
@@ -26,11 +24,7 @@ class SensorAgent:
     'update_period':  30,
     'verbose':        True,
     'host_device':    None,
-    'sensor_types': [
-      'ds18b20',
-      'bme280',
-      'sht3x'
-    ],
+    'sensor_types': [],   # Must be overriden with at least one sensor module
     'sensor_name': None,
     'mqtt': {
       'broker':     None, # Must be overridden
@@ -64,11 +58,12 @@ class SensorAgent:
     # user_config _must_ override ['mqtt']['broker']!
     self.config = { **self.default_config, **user_config }
     # Enumerate available sensors
-    if len(self.config['sensor_types']) == 0:
+    if self.config['sensor_types'] is None or len(self.config['sensor_types']) == 0:
       self.error("No sensor types were specified")
     else:
-      for lib in self.config['sensor_types']:
-        self.sensors.extend(globals()[lib].enumerate_sensors())
+      for sensor_type in self.config['sensor_types']:
+        sensor_type = importlib.import_module("sensors.{}".format(sensor_type))
+        self.sensors.extend(globals()[sensor_type].enumerate_sensors())
 
   def info(self, message):
     if self.config['verbose'] == True:
