@@ -8,9 +8,12 @@ RUN pip install paho-mqtt pyyaml smbus2 \
     sensirion-i2c-sht \
     ltr559 
 
+COPY bsec_bme680_linux/version /opt/bsec/
+COPY bsec_bme680_linux/bsec_iaq.config /opt/bsec/
+COPY bsec_bme680_linux/bsec_bme680 /opt/bsec/ 
+
 COPY sensors/*.py /opt/sensors/
-COPY config.yaml /opt/sensors/
 COPY sensor-logger /opt
 RUN chmod +x /opt/sensor-logger
 
-CMD [ "/opt/sensor-logger", "/opt/sensors/config.yaml" ]
+CMD [ "/opt/sensor-logger", "/data/sensor-config.yaml" ]
