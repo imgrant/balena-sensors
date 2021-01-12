@@ -14,18 +14,13 @@
   mqtt_password:   secret123              # Optional
   mqtt_ha_prefix:  homeassistant          # Optional, adjust if you have changed the prefix in your Home Assistant
   # Optional, specify the precision (decimal places) to use for
-  # each measurement, separately for the MQTT message and also
-  # in the Home Assistant template (note: it makes no sense to
-  # use a greater precision in Home Assistant than the underlying
-  # MQTT message)
-  precision_mqtt_temperature: 3
-  precision_mqtt_pressure:    2
-  precision_mqtt_humidity:    2
-  precision_mqtt_proximity:   0
-  precision_mqtt_lux:         5
-  precision_ha_temperature:   1
-  precision_ha_pressure:      2
-  precision_ha_humidity:      1
-  precision_ha_proximity:     0
-  precision_ha_lux:           5
+  # each measurement in the Home Assistant template (note: the
+  # values shown here are those used for the MQTT message, it 
+  # therefore makes no sense to use a greater precision in Home
+  # Assistant than these values)
+  precision_temperature: 3
+  precision_pressure:    2
+  precision_humidity:    2
+  precision_proximity:   0
+  precision_lux:         5
 ...
