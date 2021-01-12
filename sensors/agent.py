@@ -21,26 +21,21 @@ class SensorAgent:
   }
 
   default_config = {
-    'update_period':              30,
-    'verbose':                    True,
-    'host_device':                None,
-    'sensor_types':               [],    # Must be overriden with at least one sensor type module
-    'sensor_location':            None,  # Can be a string, or dict with per-sensor entries, id->location
-    'mqtt_broker':                None,  # Must be overridden
-    'mqtt_port':                  1883,
-    'mqtt_username':              None,
-    'mqtt_password':              None,
-    'mqtt_ha_prefix':             'homeassistant',
-    'precision_mqtt_temperature': 3,
-    'precision_mqtt_pressure':    2,
-    'precision_mqtt_humidity':    2,
-    'precision_mqtt_proximity':   0,
-    'precision_mqtt_lux':         5,
-    'precision_ha_temperature':   1,
-    'precision_ha_pressure':      2,
-    'precision_ha_humidity':      1,
-    'precision_ha_proximity':     0,
-    'precision_ha_lux':           5
+    'update_period':         30,
+    'verbose':               True,
+    'host_device':           None,
+    'sensor_types':          [],    # Must be overriden with at least one sensor type module
+    'sensor_location':       None,  # Can be a string, or dict with per-sensor entries, id->location
+    'mqtt_broker':           None,  # Must be overridden
+    'mqtt_port':             1883,
+    'mqtt_username':         None,
+    'mqtt_password':         None,
+    'mqtt_ha_prefix':        'homeassistant',
+    'precision_temperature': 1,
+    'precision_pressure':    1,
+    'precision_humidity':    1,
+    'precision_proximity':   0,
+    'precision_lux':         5
   }
 
 
@@ -57,6 +52,8 @@ class SensorAgent:
       for sensor_type in self.config['sensor_types']:
         self.sensor_types[sensor_type] = importlib.import_module("sensors.{}".format(sensor_type))
         self.sensors.extend(self.sensor_types[sensor_type].enumerate_sensors())
+    if len(self.sensors) == 0:
+      self.error("No sensors found")
 
   def info(self, message):
     if self.config['verbose'] == True:
@@ -75,10 +72,10 @@ class SensorAgent:
       self.mqtt_client.on_connect = self.mqtt_on_connect
       self.mqtt_client.on_disconnect = self.mqtt_on_disconnect
       try:
-        self.mqtt_client.connect(self.config['mqtt_broker'], int(self.config['mqtt_port']), 60)
+        self.mqtt_client.connect(self.config['mqtt_broker'], int(self.config['mqtt_port']), 30)
         self.mqtt_client.loop_forever()
       except:
-        self.error(traceback.format_exc())
+        self.info(traceback.format_exc())
         self.mqtt_client = None
     else:
       self.error("Unable to reach MQTT broker at {}".format(broker))
@@ -123,8 +120,10 @@ class SensorAgent:
         self.publish_message(topic="sensors/{}/status".format(sensor.id), payload="online")
         readings = {}
         for measurement in sensor.supported_measurements:
-          p = self.config["precision_mqtt_{}".format(measurement['name'])]
-          readings[measurement['name']] = round(getattr(sensor, measurement['name']), p if p>0 else None)
+          # Round and format value to string for MQTT message
+          readings[measurement['name']] = ("{:."+str(measurement['precision'])+"f}").format(
+                                                          round(getattr(sensor, measurement['name']),
+                                                          measurement['precision'] if measurement['precision']>0 else None))
         self.info("Publishing readings for sensor {}: {}".format(sensor.id, ", ".join(['{0}={1}'.format(k, v) for k,v in readings.items()])))
         self.publish_message(topic="sensors/{}/state".format(sensor.id), payload=json.dumps(readings))
       time.sleep(self.config['update_period'])
@@ -156,7 +155,7 @@ class SensorAgent:
         config_data['device_class']           = self.ha_sensor_class_map[measurement['name']]
         config_data['unit_of_measurement']    = measurement['units']
         config_data['name']                   = "{} ({}) {}".format(sensor.model, sensor.id, measurement['name'].title())
-        config_data['value_template']         = "{{{{ value_json.{} | round({}) }}}}".format(measurement['name'], self.config["precision_ha_{}".format(measurement['name'])])
+        config_data['value_template']         = "{{{{ value_json.{} | round({}) }}}}".format(measurement['name'], self.config["precision_{}".format(measurement['name'])])
         config_data['force_update']           = True
         config_data['expire_after']           = int(self.config['update_period'])*2
         self.publish_message(topic=config_topic, payload=json.dumps(config_data, indent=2), qos=1, retain=True)
