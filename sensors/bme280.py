@@ -1,11 +1,11 @@
-import sys
 from typing import Optional
+from datetime import datetime
 try:
     from smbus2 import SMBus
 except ImportError:
     from smbus import SMBus
 from bme280 import BME280
-from .measurements import Measurement
+from .measurements import Measurement, MeasurementError
 
 I2C_ADDR_PRIMARY = 0x76
 I2C_ADDR_SECONDARY = 0x77
@@ -17,11 +17,12 @@ def enumerate_sensors():
   for i2c_address in [I2C_ADDR_PRIMARY, I2C_ADDR_SECONDARY]:
     try:
       sensor = bme280(i2c_addr=i2c_address, i2c_dev=bus)
-      print("Found BME280 sensor with ID {} at I2C address {:#x}".format(sensor.id, i2c_address))
-      sensors.append(sensor)
-    except (RuntimeError) as error:
+    except RuntimeError as error:
       # If no BME280 is found, a RuntimeError is raised
       pass
+    else:
+      print("Found BME280 sensor with ID {} at I2C address {:#x}".format(sensor.id, i2c_address))
+      sensors.append(sensor)
   return sensors
 
 
@@ -46,3 +47,12 @@ class bme280(BME280):
     # See: https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/Unique-IDs-in-Bosch-Sensors/m-p/6020/highlight/true#M62
     i = i2c_dev.read_i2c_block_data(i2c_addr,0x83,4)
     self.id = f'{(((i[3] + (i[2] << 8)) & 0x7fff) << 16) + (i[1] << 8) + i[0]:08x}'
+
+  def update_sensor(self):
+    try:
+      super().update_sensor()
+    except RuntimeError as error:
+      raise MeasurementError(repr(error))
+    else:
+      self.timestamp = datetime.now().isoformat()
+      # self.temperature, self.pressure, self.humidity are set by super().update_sensor

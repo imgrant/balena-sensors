@@ -1,6 +1,8 @@
 from typing import Optional
+from datetime import datetime
 from w1thermsensor import W1ThermSensor, Sensor
-from .measurements import Measurement
+from w1thermsensor import NoSensorFoundError, SensorNotReadyError, ResetValueError
+from .measurements import Measurement, MeasurementError
 
 def enumerate_sensors():
   sensors = []
@@ -21,5 +23,11 @@ class ds18b20(W1ThermSensor):
     self.temperature = None
 
   def update_sensor(self):
-    self.temperature = self.get_temperature()
+    try:
+      temperature = self.get_temperature()
+    except (NoSensorFoundError, SensorNotReadyError, ResetValueError) as error:
+      raise MeasurementError(repr(error))
+    else:
+      self.timestamp = datetime.now().isoformat()
+      self.temperature = temperature
     

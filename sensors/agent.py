@@ -1,24 +1,18 @@
 #!/usr/bin/env python3
-import os, sys, socket, traceback
+import sys, socket, traceback
 import json, time, importlib
 from typing import List, Optional
 import paho.mqtt.client as mqtt
 from threading import Thread
-from sensors.measurements import Measurement
+from sensors.measurements import Measurement, MeasurementError
 
 
 class SensorAgent:
-  mqtt_client     = None
-  mqtt_connected  = False
-  worker          = None
-
-  ha_sensor_class_map = {
-    Measurement.TEMPERATURE['name']:  'temperature',
-    Measurement.HUMIDITY['name']:     'humidity',
-    Measurement.LIGHT['name']:        'illuminance',
-    Measurement.PRESSURE['name']:     'pressure',
-    Measurement.PROXIMITY['name']:    None
-  }
+  mqtt_client           = None
+  mqtt_connected        = False
+  ha_registered         = False
+  attributes_published  = False
+  worker                = None
 
   default_config = {
     'update_period':         30,
@@ -83,12 +77,19 @@ class SensorAgent:
   def mqtt_on_connect(self, mqtt_client, userdata, flags, rc):
     self.mqtt_connected = True
     self.info('MQTT broker connected!')
-    self.homeassistant_registration()
+    if self.ha_registered is False:
+      for sensor in self.sensors:
+        self.publish_ha_discovery(sensor)
+      self.ha_registered = True
+    if self.attributes_published is False:
+      for sensor in self.sensors:
+        self.publish_attributes(sensor)
+      self.attributes_published = True
 
   def mqtt_on_disconnect(self, mqtt_client, userdata, rc):
     self.mqtt_connected = False
     self.info('MQTT broker disconnected! Will reconnect ...')
-    if rc is 0:
+    if rc == 0:
       self.mqtt_connect()
     else:
       time.sleep(5)
@@ -116,59 +117,71 @@ class SensorAgent:
   def update(self):
     while True:
       for sensor in self.sensors:
-        sensor.update_sensor()
-        self.publish_message(topic="sensors/{}/status".format(sensor.id), payload="online")
-        readings = {}
-        for measurement in sensor.supported_measurements:
-          # Round and format value to string for MQTT message
-          readings[measurement['name']] = ("{:."+str(measurement['precision'])+"f}").format(
-                                                          round(getattr(sensor, measurement['name']),
-                                                          measurement['precision'] if measurement['precision']>0 else None))
-        self.info("Publishing readings for sensor {}: {}".format(sensor.id, ", ".join(['{0}={1}'.format(k, v) for k,v in readings.items()])))
-        self.publish_message(topic="sensors/{}/state".format(sensor.id), payload=json.dumps(readings))
+        status_topic = "sensors/{}/status".format(sensor.id)
+        try:
+          sensor.update_sensor()
+        except MeasurementError as error:
+          self.publish_message(topic=status_topic, payload="offline")
+          self.info("Failed to update measurements for sensor {} ({}). Sensor status will be set to offline.".format(sensor.id, str(error)))
+        else:
+          self.publish_message(topic=status_topic, payload="online")
+          readings = {}
+          readings['timestamp'] = str(getattr(sensor, 'timestamp'))
+          for measurement in sensor.supported_measurements:
+            # Round and format value to string for MQTT message
+            value = getattr(sensor, measurement['name'])
+            if value is not None:
+              readings[measurement['name']] = ("{:."+str(measurement['precision'])+"f}").format(
+                                                              round(getattr(sensor, measurement['name']),
+                                                              measurement['precision'] if measurement['precision']>0 else None))
+          self.info("Publishing readings for sensor {}: {}".format(sensor.id, ", ".join(['{0}={1}'.format(k, v) for k,v in readings.items()])))
+          self.publish_message(topic="sensors/{}/state".format(sensor.id), payload=json.dumps(readings))
       time.sleep(self.config['update_period'])
 
 
-  def homeassistant_registration(self):
-    for sensor in self.sensors:
-      self.info("Publishing Home Assistant discovery information for sensor {}".format(sensor.id))
-           
-      device_info = {}
-      device_info['identifiers']  = [ sensor.id ]
-      device_info['manufacturer'] = sensor.manufacturer
-      device_info['model']        = sensor.model
-      if self.config['host_device'] is not None:
-        device_info['via_device']   = self.config['host_device']
-      device_info['name']         = "{} Environmental Sensor".format(sensor.model)
+  def publish_attributes(self, sensor):
+    self.info("Publishing attributes for sensor {}".format(sensor.id))
+    attr_data = {}
+    attr_data['serial_number']  = sensor.id
+    attr_data['type']           = sensor.model
+    if self.config['sensor_location'] is not None:
+      if type(self.config['sensor_location']) is dict and sensor.id in self.config['sensor_location']:
+        attr_data['location'] = str(self.config['sensor_location'][sensor.id])
+      else:
+        attr_data['location'] = str(self.config['sensor_location'])
+    self.publish_message(topic="sensors/{}/attributes".format(sensor.id), payload=json.dumps(attr_data, indent=2), qos=1, retain=True)
+  
 
-      for measurement in sensor.supported_measurements:
+  def publish_ha_discovery(self, sensor):
+    self.info("Publishing Home Assistant discovery information for sensor {}:".format(sensor.id))
+    device_info = {}
+    device_info['identifiers']  = [ sensor.id ]
+    device_info['manufacturer'] = sensor.manufacturer
+    device_info['model']        = sensor.model
+    if self.config['host_device'] is not None:
+      device_info['via_device']   = self.config['host_device']
+    device_info['name']         = "{} Environmental Sensor".format(sensor.model)
+
+    for measurement in sensor.supported_measurements:
+      if measurement['ha_device_class'] is not None:
+        self.info(" ... registering {} measurement".format(measurement['name']))
         uid = "{}-{}".format(sensor.id, measurement['name'])
         config_topic = "{}/sensor/{}/{}/config".format(self.config['mqtt_ha_prefix'], sensor.id, uid)
-        attributes_topic = "sensors/{}/attributes".format(sensor.id)
-
         config_data = {}
         config_data['unique_id']              = uid
         config_data['state_topic']            = "sensors/{}/state".format(sensor.id)
         config_data['availability_topic']     = "sensors/{}/status".format(sensor.id)
-        config_data['json_attributes_topic']  = attributes_topic
+        config_data['json_attributes_topic']  = "sensors/{}/attributes".format(sensor.id) # See publish_attributes() above
         config_data['device']                 = device_info
-        config_data['device_class']           = self.ha_sensor_class_map[measurement['name']]
-        config_data['unit_of_measurement']    = measurement['units']
+        config_data['device_class']           = measurement['ha_device_class']
+        if measurement['units'] is not None:
+          config_data['unit_of_measurement']    = measurement['units']
         config_data['name']                   = "{} ({}) {}".format(sensor.model, sensor.id, measurement['name'].title())
         config_data['value_template']         = "{{{{ value_json.{} | round({}) }}}}".format(measurement['name'], self.config["precision_{}".format(measurement['name'])])
         config_data['force_update']           = True
         config_data['expire_after']           = int(self.config['update_period'])*2
         self.publish_message(topic=config_topic, payload=json.dumps(config_data, indent=2), qos=1, retain=True)
-        
-        attr_data = {}
-        attr_data['serial_number']  = sensor.id
-        attr_data['type']           = sensor.model
-        if self.config['sensor_location'] is not None:
-          if type(self.config['sensor_location']) is dict and sensor.id in self.config['sensor_location']:
-            attr_data['location'] = str(self.config['sensor_location'][sensor.id])
-          else:
-            attr_data['location'] = str(self.config['sensor_location'])
-        self.publish_message(topic=attributes_topic, payload=json.dumps(attr_data, indent=2), qos=1, retain=True)
+
 
   def start(self):
     self.worker = Thread(target=self.update)

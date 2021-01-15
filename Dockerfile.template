@@ -5,17 +5,17 @@ FROM balenalib/%%BALENA_MACHINE_NAME%%-alpine-python:3.8
 RUN pip install paho-mqtt pyyaml smbus2 \
     "w1thermsensor>=2.*" \
     pimoroni-bme280 \
+    bme680 \
     sensirion-i2c-sht \
     ltr559 
 
 COPY bsec_bme680_linux/version /opt/bsec/
 COPY bsec_bme680_linux/bsec_iaq.config /opt/bsec/
-COPY bsec_bme680_linux/bsec_bme680 /opt/bsec/ 
+COPY bsec_bme680_linux/bsec_bme680 /opt/bsec/
 RUN chmod +x /opt/bsec/bsec_bme680
 
 COPY sensors/*.py /opt/sensors/
 COPY sensor-logger /opt
 RUN chmod +x /opt/sensor-logger
 
-#ENTRYPOINT [ "fixup bme680" ]
 CMD [ "/opt/sensor-logger", "/data/sensor-config.yaml" ]

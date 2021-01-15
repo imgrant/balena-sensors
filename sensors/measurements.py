@@ -1,7 +1,38 @@
 class Measurement():
 
-  TEMPERATURE = { 'name': 'temperature',  'units': '°C',  'precision': 3  }
-  PRESSURE    = { 'name': 'pressure',     'units': 'hPa', 'precision': 2  }
-  HUMIDITY    = { 'name': 'humidity',     'units': '%rh', 'precision': 2  }
-  PROXIMITY   = { 'name': 'proximity',    'units': '',    'precision': 0  }
-  LIGHT       = { 'name': 'light',        'units': 'lx',  'precision': 5  }
+  TEMPERATURE         = { 'name': 'temperature',     'units': '°C',   'precision': 3,  'ha_device_class': 'temperature' }
+  PRESSURE            = { 'name': 'pressure',        'units': 'hPa',  'precision': 2,  'ha_device_class': 'pressure'    }
+  HUMIDITY            = { 'name': 'humidity',        'units': '%rh',  'precision': 2,  'ha_device_class': 'humidity'    }
+  PROXIMITY           = { 'name': 'proximity',       'units': None,   'precision': 0,  'ha_device_class': None          }
+  LIGHT               = { 'name': 'light',           'units': 'lx',   'precision': 5,  'ha_device_class': 'illuminance' }
+  AIR_QUALITY         = { 'name': 'iaq',             'units': None,   'precision': 2,  'ha_device_class': None          }
+  IAQ_ACCURACY        = { 'name': 'iaq_accuracy',    'units': None,   'precision': 0,  'ha_device_class': None          }
+  STATIC_AIR_QUALITY  = { 'name': 's_iaq',           'units': None,   'precision': 2,  'ha_device_class': None          }
+  S_IAQ_ACCURACY      = { 'name': 's_iaq_accuracy',  'units': None,   'precision': 0,  'ha_device_class': None          }
+  #
+  # Accuracy signal is an integer, 0-3, representing the following states:
+  #
+  #  | State            | Value |  Accuracy description                                     |
+  #  |------------------|-------|-----------------------------------------------------------|
+  #  | UNRELIABLE       |   0   | Stabilization / run-in ongoing                            |
+  #  | LOW_ACCURACY     |   1   | Low accuracy,to reach high accuracy(3),please expose      |
+  #  |                  |       |  sensor once to good air (e.g. outdoor air) and bad air   |
+  #  |                  |       |  (e.g. box with exhaled breath) for auto-trimming         |
+  #  | MEDIUM_ACCURACY  |   2   | Medium accuracy: auto-trimming ongoing                    |
+  #  | HIGH_ACCURACY    |   3   | High accuracy                                             |
+  #
+  CO2_EQUIV           = { 'name': 'co2_equivalents',         'units': 'ppm',  'precision': 2,  'ha_device_class': None }
+  BVOC_EQUIV          = { 'name': 'breath_voc_equivalents',  'units': 'ppm',  'precision': 2,  'ha_device_class': None }
+  GAS                 = { 'name': 'gas_resistance',          'units': 'Ω',    'precision': 3,  'ha_device_class': None }
+  GAS_PERCENT         = { 'name': 'gas_percentage',          'units': '%',    'precision': 2,  'ha_device_class': None }
+  #  
+  # Gas percentage is an alternative indicator for air pollution [%], which rates 
+  # the raw gas sensor resistance value based on the individual sensor history:
+  #  0% = "lowest air pollution ever measured"
+  #  100% = "highest air pollution ever measured"
+
+
+class MeasurementError(Exception):
+  def __init__(self, message="Unable to read measurement data from sensor"):
+        self.message = message
+        super().__init__(self.message)
