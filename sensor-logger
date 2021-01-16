@@ -12,13 +12,11 @@ def main(args):
   #
   # Prepare BSEC data files if necessary
   #
-  volume_dir = "/data"
-  if Path(volume_dir).exists():
-    data_dir = volume_dir + "/bsec"
+  data_dir = "/data/bsec"
+  if Path(data_dir).exists():
     opt_dir  = "/opt/bsec"
     files =  [ "version", "bsec_iaq.state", "bsec_iaq.config" ]
-    d = Path(data_dir)
-    if d.exists() and d.is_dir():
+    if Path(data_dir + "/version").exists():
       if Compare(data_dir + "/version", opt_dir + "/version") is False:
         print("BSEC library versions differ, clearing existing state...")
         for f in files:
@@ -32,7 +30,7 @@ def main(args):
         if src.exists():
           shutil.copy(src, dest)
   else:
-    print("Persistent storage ({}) not available, skipping BSEC checks".format(volume_dir))
+    print("Persistent storage ({}) not available, skipping BSEC checks".format(data_dir))
 
 
   #
