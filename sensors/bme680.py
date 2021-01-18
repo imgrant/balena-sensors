@@ -81,9 +81,11 @@ class bme680(pimoroni_bme680.BME680):
       raise MeasurementError(repr(error))
     else:
       for key,value in self.bsec_data.items():
-        self.timestamp = datetime.now().isoformat()
         setattr(self, key, float(value))
 
+  @property
+  def timestamp(self):
+    return datetime.now().isoformat(timespec='seconds')
 
   def bsec_capture(self):
     bsec = subprocess.Popen(self.bsec_command, stdout=subprocess.PIPE)

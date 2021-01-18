@@ -24,10 +24,11 @@ class ds18b20(W1ThermSensor):
 
   def update_sensor(self):
     try:
-      temperature = self.get_temperature()
+      self.temperature = self.get_temperature()
     except (NoSensorFoundError, SensorNotReadyError, ResetValueError) as error:
       raise MeasurementError(repr(error))
-    else:
-      self.timestamp = datetime.now().isoformat()
-      self.temperature = temperature
+  
+  @property
+  def timestamp(self):
+    return datetime.now().isoformat(timespec='seconds')
     
