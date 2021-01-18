@@ -145,8 +145,9 @@ class SensorAgent:
     attr_data['serial_number']  = sensor.id
     attr_data['type']           = sensor.model
     if self.config['sensor_location'] is not None:
-      if type(self.config['sensor_location']) is dict and sensor.id in self.config['sensor_location']:
-        attr_data['location'] = str(self.config['sensor_location'][sensor.id])
+      if type(self.config['sensor_location']) is dict:
+        if sensor.id in self.config['sensor_location']:
+          attr_data['location'] = str(self.config['sensor_location'][sensor.id])
       else:
         attr_data['location'] = str(self.config['sensor_location'])
     self.publish_message(topic="sensors/{}/attributes".format(sensor.id), payload=json.dumps(attr_data, indent=2), qos=1, retain=True)
