@@ -53,6 +53,7 @@ class bme280(BME280):
       super().update_sensor()
     except RuntimeError as error:
       raise MeasurementError(repr(error))
-    else:
-      self.timestamp = datetime.now().isoformat()
-      # self.temperature, self.pressure, self.humidity are set by super().update_sensor
+  
+  @property
+  def timestamp(self):
+    return datetime.now().isoformat(timespec='seconds')

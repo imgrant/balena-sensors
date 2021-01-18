@@ -62,4 +62,4 @@ class si70xx(Si7021):
 
   @property
   def timestamp(self):
-    return datetime.now().isoformat()
+    return datetime.now().isoformat(timespec='seconds')
