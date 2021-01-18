@@ -1,8 +1,16 @@
+FROM balenalib/%%BALENA_MACHINE_NAME%%-alpine-python:3.8-build as build
+RUN pip install wheel 
+# RPi.GPIO and smbus can't be installed in a '-run' image due to C bindings
+# requiring compilation (thus gcc, etc must be available); install them
+# here and copy into the final layer below.
+RUN pip install RPi.GPIO smbus
+
+
 FROM balenalib/%%BALENA_MACHINE_NAME%%-alpine-python:3.8
 
-# Install required Python modules; n.b. smbus2 is pure Python, whereas smbus involes C
-# and requires compilation, which would need a Balena 'build', not 'run' image
-RUN pip install paho-mqtt pyyaml smbus2 \
+COPY --from=build /usr/local/lib/python3.8/site-packages/ /usr/local/lib/python3.8/site-packages/
+RUN pip install paho-mqtt pyyaml  \
+    adafruit-circuitpython-busdevice \
     "w1thermsensor>=2.*" \
     pimoroni-bme280 \
     bme680 \
@@ -14,8 +22,8 @@ COPY bsec_bme680_linux/bsec_iaq.config /opt/bsec/
 COPY bsec_bme680_linux/bsec_bme680 /opt/bsec/
 RUN chmod +x /opt/bsec/bsec_bme680
 
-COPY sensors/*.py /opt/sensors/
-COPY sensor-logger /opt
+COPY sensors/ /opt/sensors/
+COPY sensor-logger /opt/
 RUN chmod +x /opt/sensor-logger
 
 CMD [ "/opt/sensor-logger", "/data/sensor-config.yaml" ]
