@@ -38,9 +38,12 @@ class sht3x(Sht3xI2cDevice):
 
   def update_sensor(self):
     try:
-      self.temperature, self.humidity = self.single_shot_measurement()
+      temperature, humidity = self.single_shot_measurement()
     except I2cTransceiveError as error:
       raise MeasurementError(repr(error))
+    else:
+      self.temperature = temperature.degrees_celsius
+      self.humidity = humidity.percent_rh
 
   @property
   def timestamp(self):
