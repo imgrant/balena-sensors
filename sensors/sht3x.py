@@ -34,7 +34,7 @@ class sht3x(Sht3xI2cDevice):
   def __init__(self, connection=None,
                i2c_addr: Optional[int] = I2C_ADDR_PRIMARY):
     super().__init__(connection=connection, slave_address=i2c_addr)
-    self.id = str(self.read_serial_number())
+    self.id = f'{self.read_serial_number():08x}'
 
   def update_sensor(self):
     try:
