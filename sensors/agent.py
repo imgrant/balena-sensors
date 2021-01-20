@@ -131,9 +131,7 @@ class SensorAgent:
             # Round and format value to string for MQTT message
             value = getattr(sensor, measurement['name'])
             if value is not None:
-              readings[measurement['name']] = ("{:."+str(measurement['precision'])+"f}").format(
-                                                              round(getattr(sensor, measurement['name']),
-                                                              measurement['precision'] if measurement['precision']>0 else None))
+              readings[measurement['name']] = round(value, measurement['precision'] if measurement['precision']>0 else None)
           self.info("Publishing readings for sensor {}: {}".format(sensor.id, ", ".join(['{0}={1}'.format(k, v) for k,v in readings.items()])))
           self.publish_message(topic="sensors/{}/state".format(sensor.id), payload=json.dumps(readings))
       time.sleep(self.config['update_period'])
