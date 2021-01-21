@@ -82,11 +82,14 @@ class bme680(pimoroni_bme680.BME680):
       raise MeasurementError(repr(error))
     else:
       for key,value in self.bsec_data.items():
-        precision = next(filter(lambda m: m['name'] == key, self.supported_measurements))
-        if precision == 0:
-          setattr(self, key, int(value))
-        else:
-          setattr(self, key, float(value))
+        try:
+          precision = next(filter(lambda m: m['name'] == key, self.supported_measurements))
+          if precision == 0:
+            setattr(self, key, int(value))
+          else:
+            setattr(self, key, float(value))
+        except StopIteration:
+          pass
 
   @property
   def timestamp(self):
