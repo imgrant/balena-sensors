@@ -44,22 +44,24 @@ class bme680(pimoroni_bme680.BME680):
                             Measurement.BVOC_EQUIV,
                             Measurement.GAS,
                             Measurement.GAS_PERCENT]
-
-  bsec_command = [ '/opt/bsec/bsec_bme680' ]
-  bsec_process = None
   bsec_data = None
 
   def __init__(self,
-               i2c_addr:  Optional[int]     = pimoroni_bme680.constants.I2C_ADDR_PRIMARY,
-               i2c_dev:   Optional[object]  = None):
+               i2c_addr:    Optional[int]     = pimoroni_bme680.constants.I2C_ADDR_PRIMARY,
+               i2c_dev:     Optional[object]  = None,
+               bsec_cmd:    Optional[str]     = '/opt/bsec/bsec_bme680',
+               config_file: Optional[str]     = '/data/bsec/bsec_iaq.config',
+               state_file:  Optional[str]     = '/data/bsec/bsec_iaq.state',
+               temp_offset: Optional[float]   = 0.0 ):
     # Call the Pimoroni BME680 class init() — if the sensor at the I2C address
     # is not a BME680, an error will be raised.
     super().__init__(i2c_addr=i2c_addr, i2c_device=i2c_dev)
 
-    if i2c_addr == pimoroni_bme680.constants.I2C_ADDR_PRIMARY:
-      self.bsec_command.extend( [ "primary" ] )
-    elif i2c_addr == pimoroni_bme680.constants.I2C_ADDR_SECONDARY:
-      self.bsec_command.extend( [ "secondary" ] )
+    self.bsec_command = [ bsec_cmd,
+                          "--address",  f'0x{i2c_addr:x}',
+                          "--config",   config_file,
+                          "--state",    state_file,
+                          "--offset",   str(temp_offset) ]
 
     # Read device unique ID directly and store it in the class object
     # See: https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/Unique-IDs-in-Bosch-Sensors/m-p/6020/highlight/true#M62
