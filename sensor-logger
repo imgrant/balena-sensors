@@ -2,36 +2,13 @@
 import os, sys, shutil
 import yaml
 from pathlib import Path
-from filecmp import cmp as Compare
+from subprocess import check_output
+from packaging import version
 from distutils.dist import strtobool
 from sensors.agent import SensorAgent
 
 def main(args):
   config = {}
-
-  #
-  # Prepare BSEC data files if necessary
-  #
-  data_dir = "/data/bsec"
-  if Path(data_dir).exists():
-    opt_dir  = "/opt/bsec"
-    files =  [ "version", "bsec_iaq.state", "bsec_iaq.config" ]
-    if Path(data_dir + "/version").exists():
-      if Compare(data_dir + "/version", opt_dir + "/version") is False:
-        print("BSEC library versions differ, clearing existing state...")
-        for f in files:
-          Path(data_dir + "/" + f).unlink(missing_ok=True)
-    Path(data_dir).mkdir(exist_ok=True)
-    for f in files:
-      dest = Path(data_dir + "/" + f)
-      src = Path(opt_dir + "/" + f)
-      if dest.exists() is False:
-        dest.touch()
-        if src.exists():
-          shutil.copy(src, dest)
-  else:
-    print("Persistent storage ({}) not available, skipping BSEC checks".format(data_dir))
-
 
   #
   # Attempt to load YAML config file
@@ -94,10 +71,37 @@ def main(args):
 
   if balena_host is not None:
     config['host_device'] = balena_host
-    
+
+  #
+  # Prepare BSEC data files if necessary
+  #
+  if 'bme680' in config['sensor_types']:
+    volume_dir = Path("/data")
+    if volume_dir.exists():
+      data_dir = volume_dir.joinpath("bsec")
+      opt_dir  = Path("/opt/bsec")
+      data_version_file = data_dir.joinpath("version")
+      opt_version = version.parse(check_output(['/opt/bsec/bsec_bme680', '--version'], text=True))
+      # Compare binary in /opt with recorded version in /data
+      if data_version_file.exists():
+        data_version = version.parse(data_version_file.read_text().rstrip())
+        if data_version != opt_version:
+          print("BSEC library versions differ, wiping existing state...")
+          data_dir.joinpath("bsec_iaq.state").unlink(missing_ok=True)
+      # Create data dir and copy config file (it's missing if this is a fresh install, or it was wiped above)
+      data_dir.mkdir(exist_ok=True)
+      shutil.copy(opt_dir.joinpath("bsec_iaq.config"), data_dir.joinpath("bsec_iaq.config"))
+      data_version_file.write_text(opt_version.public) # Record the /opt binary vesion in /data version file
+    else:
+      print("Persistent storage ({}) not available, skipping BSEC checks".format(volume_dir))
+
+
+  #
   # Start agent
+  #
   sensors = SensorAgent(config)
   sensors.start()
+
 
 if __name__ == "__main__":
   main(sys.argv[1:])

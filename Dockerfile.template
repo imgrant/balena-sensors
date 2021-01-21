@@ -9,7 +9,7 @@ RUN pip install RPi.GPIO smbus
 FROM balenalib/%%BALENA_MACHINE_NAME%%-alpine-python:3.8
 
 COPY --from=build /usr/local/lib/python3.8/site-packages/ /usr/local/lib/python3.8/site-packages/
-RUN pip install paho-mqtt pyyaml  \
+RUN pip install paho-mqtt pyyaml packaging \
     adafruit-circuitpython-busdevice \
     "w1thermsensor>=2.*" \
     pimoroni-bme280 \
@@ -17,7 +17,6 @@ RUN pip install paho-mqtt pyyaml  \
     sensirion-i2c-sht \
     ltr559 
 
-COPY bsec_bme680_linux/version /opt/bsec/
 COPY bsec_bme680_linux/bsec_iaq.config /opt/bsec/
 COPY bsec_bme680_linux/bsec_bme680 /opt/bsec/
 RUN chmod +x /opt/bsec/bsec_bme680
