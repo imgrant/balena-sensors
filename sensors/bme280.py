@@ -1,20 +1,17 @@
 from typing import Optional
 from datetime import datetime
 try:
-    from smbus2 import SMBus
-except ImportError:
     from smbus import SMBus
-from bme280 import BME280
+except ImportError:
+    from smbus2 import SMBus
+import bme280 as pimoroni_bme280
 from .measurements import Measurement, MeasurementError
-
-I2C_ADDR_PRIMARY = 0x76
-I2C_ADDR_SECONDARY = 0x77
 
 
 def enumerate_sensors():
   sensors = []
   bus = SMBus(1)
-  for i2c_address in [I2C_ADDR_PRIMARY, I2C_ADDR_SECONDARY]:
+  for i2c_address in [pimoroni_bme280.I2C_ADDRESS_GND, pimoroni_bme280.I2C_ADDRESS_VCC]:
     try:
       sensor = bme280(i2c_addr=i2c_address, i2c_dev=bus)
     except RuntimeError as error:
@@ -26,7 +23,7 @@ def enumerate_sensors():
   return sensors
 
 
-class bme280(BME280):
+class bme280(pimoroni_bme280.BME280):
 
   manufacturer = 'Bosch'
   model = 'BME280'
@@ -35,7 +32,7 @@ class bme280(BME280):
                             Measurement.HUMIDITY]
 
   def __init__(self,
-               i2c_addr:  Optional[int]     = I2C_ADDR_PRIMARY,
+               i2c_addr:  Optional[int]     = pimoroni_bme280.I2C_ADDRESS_GND,
                i2c_dev:   Optional[object]  = None):
     super().__init__(i2c_addr=i2c_addr, i2c_dev=i2c_dev)
     # Attempt to set up the sensor in "forced" mode

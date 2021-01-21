@@ -1,9 +1,9 @@
 import sys
 from time import sleep
 try:
-    from smbus2 import SMBus
-except ImportError:
     from smbus import SMBus
+except ImportError:
+    from smbus2 import SMBus
 from ltr559 import LTR559
 
 try:

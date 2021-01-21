@@ -1,9 +1,9 @@
 from typing import Optional
 from datetime import datetime
 try:
-    from smbus2 import SMBus
-except ImportError:
     from smbus import SMBus
+except ImportError:
+    from smbus2 import SMBus
 import subprocess, io, json, time
 from threading import Thread
 # Use the Pimoroni BME680 library to ease handling of probing the 
