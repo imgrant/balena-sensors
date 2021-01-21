@@ -47,7 +47,7 @@ class bme680(pimoroni_bme680.BME680):
 
   bsec_command = [ '/opt/bsec/bsec_bme680' ]
   bsec_process = None
-  bsec_data = {}
+  bsec_data = None
 
   def __init__(self,
                i2c_addr:  Optional[int]     = pimoroni_bme680.constants.I2C_ADDR_PRIMARY,
@@ -73,15 +73,18 @@ class bme680(pimoroni_bme680.BME680):
 
   def update_sensor(self):
     try:
-      assert type(self.bsec_data) is dict, "Incorrect type: bsec_data is not a dictionary"
+      assert type(self.bsec_data) is dict, "Incorrect type: BSEC data is not a dictionary (sensor not ready?)"
       for m in self.supported_measurements:
-        assert m['name'] in self.bsec_data, "Reading not found: {} is not in bsec_data"
-        assert type(self.bsec_data[m['name']]) is str, "Invalid JSON: bsec_data.{} is not a string".format(m['name'])
+        assert m['name'] in self.bsec_data, "Reading not found: '{}' is not in BSEC data".format(m['name'])
     except AssertionError as error:
       raise MeasurementError(repr(error))
     else:
       for key,value in self.bsec_data.items():
-        setattr(self, key, float(value))
+        precision = next(filter(lambda m: m['name'] == key, self.supported_measurements))
+        if precision == 0:
+          setattr(self, key, int(value))
+        else:
+          setattr(self, key, float(value))
 
   @property
   def timestamp(self):
