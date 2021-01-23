@@ -15,21 +15,29 @@ class SensorAgent:
   worker                = None
 
   default_config = {
-    'update_period':         30,
-    'verbose':               True,
-    'host_device':           None,
-    'sensor_types':          [],    # Must be overriden with at least one sensor type module
-    'sensor_location':       None,  # Can be a string, or dict with per-sensor entries, id->location
-    'mqtt_broker':           None,  # Must be overridden
-    'mqtt_port':             1883,
-    'mqtt_username':         None,
-    'mqtt_password':         None,
-    'mqtt_ha_prefix':        'homeassistant',
-    'precision_temperature': 1,
-    'precision_pressure':    1,
-    'precision_humidity':    1,
-    'precision_proximity':   0,
-    'precision_lux':         5
+    'update_period':    30,
+    'verbose':          True,
+    'host_device':      None,
+    'sensor_types':     [],    # Must be overriden with at least one sensor type module
+    'sensor_location':  None,  # Can be a string, or dict with per-sensor entries, id->location
+    'mqtt_broker':      None,  # Must be overridden
+    'mqtt_port':        1883,
+    'mqtt_username':    None,
+    'mqtt_password':    None,
+    'mqtt_ha_prefix':   'homeassistant',
+    'precision_temperature':            1,
+    'precision_pressure':               1,
+    'precision_humidity':               1,
+    'precision_proximity':              0,
+    'precision_light':                  5,
+    'precision_iaq':                    0,
+    'precision_iaq_accuracy':           0,
+    'precision_s_iaq':                  0,
+    'precision_s_iaq_accuracy':         0,
+    'precision_co2_equivalents':        0,
+    'precision_breath_voc_equivalents': 0,
+    'precision_gas_resistance':         0,
+    'precision_gas_percentage':         1
   }
 
 
@@ -162,24 +170,24 @@ class SensorAgent:
     device_info['name']         = "{} Environmental Sensor".format(sensor.model)
 
     for measurement in sensor.supported_measurements:
+      self.info(" ... registering {} measurement".format(measurement['name']))
+      uid = "{}-{}".format(sensor.id, measurement['name'])
+      config_topic = "{}/sensor/{}/{}/config".format(self.config['mqtt_ha_prefix'], sensor.id, uid)
+      config_data = {}
+      config_data['unique_id']              = uid
+      config_data['state_topic']            = "sensors/{}/state".format(sensor.id)
+      config_data['availability_topic']     = "sensors/{}/status".format(sensor.id)
+      config_data['json_attributes_topic']  = "sensors/{}/attributes".format(sensor.id) # See publish_attributes() above
+      config_data['device']                 = device_info
       if measurement['ha_device_class'] is not None:
-        self.info(" ... registering {} measurement".format(measurement['name']))
-        uid = "{}-{}".format(sensor.id, measurement['name'])
-        config_topic = "{}/sensor/{}/{}/config".format(self.config['mqtt_ha_prefix'], sensor.id, uid)
-        config_data = {}
-        config_data['unique_id']              = uid
-        config_data['state_topic']            = "sensors/{}/state".format(sensor.id)
-        config_data['availability_topic']     = "sensors/{}/status".format(sensor.id)
-        config_data['json_attributes_topic']  = "sensors/{}/attributes".format(sensor.id) # See publish_attributes() above
-        config_data['device']                 = device_info
         config_data['device_class']           = measurement['ha_device_class']
-        if measurement['units'] is not None:
-          config_data['unit_of_measurement']    = measurement['units']
-        config_data['name']                   = "{} ({}) {}".format(sensor.model, sensor.id, measurement['name'].title())
-        config_data['value_template']         = "{{{{ value_json.{} | round({}) }}}}".format(measurement['name'], self.config["precision_{}".format(measurement['name'])])
-        config_data['force_update']           = True
-        config_data['expire_after']           = int(self.config['update_period'])*2
-        self.publish_message(topic=config_topic, payload=json.dumps(config_data, indent=2), qos=1, retain=True)
+      if measurement['units'] is not None:
+        config_data['unit_of_measurement']    = measurement['units']
+      config_data['name']                   = "{} ({}) {}".format(sensor.model, sensor.id, measurement['ha_title'])
+      config_data['value_template']         = "{{{{ value_json.{} | round({}) }}}}".format(measurement['name'], self.config["precision_{}".format(measurement['name'])])
+      config_data['force_update']           = True
+      config_data['expire_after']           = int(self.config['update_period'])*2
+      self.publish_message(topic=config_topic, payload=json.dumps(config_data, indent=2), qos=1, retain=True)
 
 
   def start(self):
