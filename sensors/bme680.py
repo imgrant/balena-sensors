@@ -90,10 +90,8 @@ class bme680(pimoroni_bme680.BME680):
             setattr(self, key, float(value))
         except StopIteration:
           pass
+      self.timestamp = datetime.now().isoformat(timespec='seconds')
 
-  @property
-  def timestamp(self):
-    return datetime.now().isoformat(timespec='seconds')
 
   def bsec_capture(self):
     bsec = subprocess.Popen(self.bsec_command, stdout=subprocess.PIPE)
