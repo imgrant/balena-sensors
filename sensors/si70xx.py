@@ -33,33 +33,18 @@ class si70xx(Si7021):
     self.id = f'{self.serial:08x}'
     self.model = self.identifier
     self._temperature = None
-    self._humidity = None
 
   def update_sensor(self):
     try:
-      self.temperature = super().temperature
+      self._temperature = super().temperature
       self.humidity = super().relative_humidity
     except (IOError, CRCError) as error:
       raise MeasurementError(repr(error))
+    else:
+      self.timestamp = datetime.now().isoformat(timespec='seconds')
 
-  # Override super class properties because
-  # we're using the same name for temperature
+  # Override super class property for temperature
+  # because otherwise there's a name clash
   @property
   def temperature(self):
     return self._temperature
-
-  @temperature.setter
-  def temperature(self, value):
-    self._temperature = value
-  
-  @property
-  def humidity(self):
-    return self._humidity
-
-  @humidity.setter
-  def humidity(self, value):
-    self._humidity = value
-
-  @property
-  def timestamp(self):
-    return datetime.now().isoformat(timespec='seconds')

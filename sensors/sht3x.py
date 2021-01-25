@@ -44,7 +44,4 @@ class sht3x(Sht3xI2cDevice):
     else:
       self.temperature = temperature.degrees_celsius
       self.humidity = humidity.percent_rh
-
-  @property
-  def timestamp(self):
-    return datetime.now().isoformat(timespec='seconds')
+      self.timestamp = datetime.now().isoformat(timespec='seconds')

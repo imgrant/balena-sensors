@@ -47,10 +47,8 @@ class bme280(pimoroni_bme280.BME280):
 
   def update_sensor(self):
     try:
-      super().update_sensor()
+      super().update_sensor() # Sets self.temperature, humidity, pressure
     except RuntimeError as error:
       raise MeasurementError(repr(error))
-  
-  @property
-  def timestamp(self):
-    return datetime.now().isoformat(timespec='seconds')
+    else:
+      self.timestamp = datetime.now().isoformat(timespec='seconds')
