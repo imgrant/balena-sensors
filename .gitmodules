@@ -1,6 +1,3 @@
 [submodule "bsec_bme680_linux"]
 	path = bsec_bme680_linux
 	url = git@github.com:imgrant/bsec_bme680_linux.git
-[submodule "sensors/extlib/chrisbalmer_si7021"]
-	path = sensors/extlib/chrisbalmer_si7021
-	url = git@github.com:chrisbalmer/micropython-si7021.git
