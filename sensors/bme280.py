@@ -16,7 +16,7 @@ def enumerate_sensors():
       sensor = bme280(i2c_addr=i2c_address, i2c_dev=bus)
     except RuntimeError as error:
       # If no BME280 is found, a RuntimeError is raised
-      pass
+      print("Error initialising BME280 sensor at I2C address {:#x}: {}".format(i2c_address, str(error)))
     else:
       print("Found BME280 sensor with ID {} at I2C address {:#x}".format(sensor.id, i2c_address))
       sensors.append(sensor)
@@ -40,15 +40,18 @@ class bme280(pimoroni_bme280.BME280):
     # a new reading and wait for the result.
     # The chip will return to sleep mode when finished.
     self.setup(mode='forced')
-    # Read device unique ID directly and store it in the class object
-    # See: https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/Unique-IDs-in-Bosch-Sensors/m-p/6020/highlight/true#M62
-    i = i2c_dev.read_i2c_block_data(i2c_addr,0x83,4)
-    self.id = f'{(((i[3] + (i[2] << 8)) & 0x7fff) << 16) + (i[1] << 8) + i[0]:08x}'
 
   def update_sensor(self):
     try:
       super().update_sensor() # Sets self.temperature, humidity, pressure
     except RuntimeError as error:
-      raise MeasurementError(repr(error))
+      raise MeasurementError(str(error))
     else:
       self.timestamp = datetime.now().isoformat(timespec='seconds')
+
+  @property
+  def id(self):
+    """A unique identifier (serial number) for the device."""
+    # See: https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/Unique-IDs-in-Bosch-Sensors/m-p/6020/highlight/true#M62
+    i = self._i2c_dev.read_i2c_block_data(self._i2c_addr,0x83,4)
+    return f'{(((i[3] + (i[2] << 8)) & 0x7fff) << 16) + (i[1] << 8) + i[0]:08x}'

@@ -22,7 +22,7 @@ def enumerate_sensors():
     except (IOError, RuntimeError) as error:
       # If no device is found, an IOError is raised;
       # if the chip ID doesn't match (i.e. it's not a BME680), RuntimeError is raised
-      pass
+      print("Error initialising BME680 sensor at I2C address {:#x}: {}".format(i2c_address, str(error)))
     else:
       print("Found BME680 sensor with ID {} at I2C address {:#x}".format(sensor.id, i2c_address))
       sensors.append(sensor)
@@ -56,21 +56,22 @@ class bme680(pimoroni_bme680.BME680):
     # Call the Pimoroni BME680 class init() — if the sensor at the I2C address
     # is not a BME680, an error will be raised.
     super().__init__(i2c_addr=i2c_addr, i2c_device=i2c_dev)
-
     self.bsec_command = [ bsec_cmd,
                           "--address",  f'0x{i2c_addr:x}',
                           "--config",   config_file,
                           "--state",    state_file,
-                          "--offset",   str(temp_offset) ]
-
-    # Read device unique ID directly and store it in the class object
-    # See: https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/Unique-IDs-in-Bosch-Sensors/m-p/6020/highlight/true#M62
-    i = i2c_dev.read_i2c_block_data(i2c_addr,0x83,4)
-    self.id = f'{(((i[3] + (i[2] << 8)) & 0x7fff) << 16) + (i[1] << 8) + i[0]:08x}'
-    
+                          "--offset",   str(temp_offset) ]    
     # Start the BSEC library process
     self.bsec_process = Thread(target=self.bsec_capture)
     self.bsec_process.start()
+
+
+  @property
+  def id(self):
+    """A unique identifier (serial number) for the device."""
+    # See: https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/Unique-IDs-in-Bosch-Sensors/m-p/6020/highlight/true#M62
+    i = self._i2c.read_i2c_block_data(self.i2c_addr,0x83,4)
+    return f'{(((i[3] + (i[2] << 8)) & 0x7fff) << 16) + (i[1] << 8) + i[0]:08x}'
 
 
   def update_sensor(self):
@@ -79,7 +80,7 @@ class bme680(pimoroni_bme680.BME680):
       for m in self.supported_measurements:
         assert m['name'] in self.bsec_data, "Reading not found: '{}' is not in BSEC data".format(m['name'])
     except AssertionError as error:
-      raise MeasurementError(repr(error))
+      raise MeasurementError(str(error))
     else:
       for key,value in self.bsec_data.items():
         try:
