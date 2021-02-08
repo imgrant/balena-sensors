@@ -31,7 +31,7 @@ def enumerate_sensors():
       # To see if there is a DHT device on the GPIO pin, try taking a measurement
       try_measurement(sensor)
     except RuntimeError as error:
-      print("Error initialising DHT sensor on GPIO pin {}: {})".format(gpio.id, str(error)))
+      print("Error initialising DHT sensor on GPIO pin {}: {}".format(gpio.id, str(error)))
     else:
       print("Found DHT22 sensor with ID {} on GPIO pin {}".format(sensor.id, sensor.pin.id))
       sensors.append(sensor)

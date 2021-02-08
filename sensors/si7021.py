@@ -30,8 +30,8 @@ def retry_if_runtime_error(exception):
 @retry(stop_max_attempt_number=3, wait_fixed=1000, retry_on_exception=retry_if_runtime_error)
 def probe_sensor(i2c_bus, i2c_address):
   """
-  If no DHT device is found, ValueError is raise; but if RuntimeError is raised,
-  it can indicate failed initialisation ("bad USER1 register"), worth retrying.
+  If no device is found, ValueError is raise; but if RuntimeError is raised,
+  it can indicate failed initialisation ("bad USER1 register"), worth retrying?
   """
   sensor = si7021(i2c_dev=i2c_bus, i2c_addr=i2c_address)
   return sensor
