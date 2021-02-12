@@ -75,7 +75,9 @@ def main(args):
   #
   # Prepare BSEC data files if necessary
   #
-  if 'bme680' in config['sensor_types']:
+  if 'sensor_types' not in config or (
+      'sensor_types' in config and 
+      'bme680' in config['sensor_types'] ):
     volume_dir = Path("/data")
     if volume_dir.exists():
       data_dir = volume_dir.joinpath("bsec")
