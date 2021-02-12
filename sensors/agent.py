@@ -148,7 +148,7 @@ class SensorAgent:
   def publish_attributes(self, sensor):
     self.info("Publishing attributes for sensor {}".format(sensor.id))
     attr_data = {}
-    attr_data['serial_number']  = sensor.id
+    attr_data['serial_number']  = sensor.serial_number
     attr_data['type']           = sensor.model
     if self.config['sensor_location'] is not None:
       if type(self.config['sensor_location']) is dict:
@@ -162,7 +162,7 @@ class SensorAgent:
   def publish_ha_discovery(self, sensor):
     self.info("Publishing Home Assistant discovery information for sensor {}:".format(sensor.id))
     device_info = {}
-    device_info['identifiers']  = [ sensor.id ]
+    device_info['identifiers']  = [ sensor.id, sensor.serial_number ]
     device_info['manufacturer'] = sensor.manufacturer
     device_info['model']        = sensor.model
     if self.config['host_device'] is not None:
@@ -171,7 +171,7 @@ class SensorAgent:
 
     for measurement in sensor.supported_measurements:
       self.info(" ... registering {} measurement".format(measurement['name']))
-      uid = "{}-{}".format(sensor.id, measurement['name'])
+      uid = "{}--{}".format(sensor.id, measurement['name'])
       config_topic = "{}/sensor/{}/{}/config".format(self.config['mqtt_ha_prefix'], sensor.id, uid)
       config_data = {}
       config_data['unique_id']              = uid

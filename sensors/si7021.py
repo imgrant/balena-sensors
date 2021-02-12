@@ -1,5 +1,6 @@
 from datetime import datetime
 from retrying import retry
+from zlib import crc32
 from busio import I2C
 from board import SCL, SDA
 import adafruit_si7021
@@ -13,11 +14,11 @@ def enumerate_sensors():
   for i2c_address in [ I2C_ADDRESS ]:
     try:
       sensor = probe_sensor(bus, i2c_address)
-    except (ValueError, RuntimeError) as error:
+    except (OSError, ValueError, RuntimeError) as error:
       # If no Si70xx device is found, ValueError is raised; RuntimeError is raised upon failed initialisation
       print("Error initialising Si70xx sensor at I2C address {:#x}: {}".format(i2c_address, str(error)))
     else:
-      print("Found {} sensor with ID {} at I2C address {:#x}".format(sensor.model, sensor.id, i2c_address))
+      print("Found {} sensor with ID {:x} at I2C address {:#x}".format(sensor.model, sensor.serial_number, i2c_address))
       sensors.append(sensor)
   return sensors
 
@@ -64,11 +65,11 @@ class si7021(adafruit_si7021.SI7021):
     return self._temperature
 
   @property
-  def id(self):
-    """A unique identifier (serial number) for the device."""
-    return f'{self.serial_number:08x}'
-
-  @property
   def model(self):
     """The device type (model)."""
     return self.device_identifier
+  
+  @property
+  def id(self):
+    """A unique identifier for the device."""
+    return f'{self.model:s}--{self.serial_number:08x}'.lower()

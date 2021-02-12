@@ -18,7 +18,7 @@ def enumerate_sensors():
       # if the chip ID doesn't match (i.e. it's not a BME280), RuntimeError is raised
       print("Error initialising BME280 sensor at I2C address {:#x}: {}".format(i2c_address, str(error)))
     else:
-      print("Found BME280 sensor with ID {} at I2C address {:#x}".format(sensor.id, i2c_address))
+      print("Found BME280 sensor with ID {:x} at I2C address {:#x}".format(sensor.serial_number, i2c_address))
       sensors.append(sensor)
   return sensors
 
@@ -63,7 +63,12 @@ class bme280(adafruit_bme280.Adafruit_BME280_I2C):
 
   @property
   def id(self):
-    """A unique identifier (serial number) for the device."""
+    """A unique identifier for the device."""
+    return f'{self.model:s}--{self.serial_number:08x}'.lower()
+
+  @property
+  def serial_number(self):
+    """The hardware identifier (serial number) for the device."""
     # See: https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/Unique-IDs-in-Bosch-Sensors/m-p/6020/highlight/true#M62
     i = self._read_register(0x83, 4)
     serial = (((i[3] + (i[2] << 8)) & 0x7fff) << 16) + (i[1] << 8) + i[0]

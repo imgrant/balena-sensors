@@ -1,5 +1,6 @@
 from typing import Optional
 from datetime import datetime
+from zlib import crc32
 from busio import I2C
 from board import SCL, SDA
 import adafruit_sht31d
@@ -12,11 +13,11 @@ def enumerate_sensors():
   for i2c_address in [ adafruit_sht31d._SHT31_DEFAULT_ADDRESS, adafruit_sht31d._SHT31_SECONDARY_ADDRESS ]:
     try:
       sensor = sht31d(i2c_dev=bus, i2c_addr=i2c_address)
-    except (ValueError, RuntimeError) as error:
+    except (OSError, ValueError, RuntimeError) as error:
       # If no SHT device is found, a ValueError is raised; RuntimeError can be raised on, e.g. CRC mismatch (faulty sensor or wiring?)
       print("Error initialising SHT3x sensor at I2C address {:#x}: {}".format(i2c_address, str(error)))
     else:
-      print("Found SHT31-D sensor with ID {} at I2C address {:#x}".format(sensor.id, i2c_address))
+      print("Found SHT31-D sensor with ID {:x} at I2C address {:#x}".format(sensor.serial_number, i2c_address))
       sensors.append(sensor)
   return sensors
 
@@ -48,5 +49,5 @@ class sht31d(adafruit_sht31d.SHT31D):
 
   @property
   def id(self):
-    """A unique identifier (serial number) for the device."""
-    return f'{self.serial_number:08x}'
+    """A unique identifier for the device."""
+    return f'{self.model:s}--{self.serial_number:08x}'.lower()
