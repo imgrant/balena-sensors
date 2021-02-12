@@ -1,5 +1,6 @@
 from typing import Optional
 from datetime import datetime
+from zlib import crc32
 from busio import I2C
 from board import SCL, SDA
 import adafruit_tmp117
@@ -14,11 +15,12 @@ def enumerate_sensors():
   for i2c_address in [ I2C_DEFAULT_ADDRESS, I2C_SECONDARY_ADDRESS ]:
     try:
       sensor = tmp117(i2c_dev=bus, i2c_addr=i2c_address)
-    except (AttributeError, ValueError) as error:
+    except (OSError, AttributeError, ValueError) as error:
       # If no TMP117 device is found, an AttributeError is raised (possibly ValueError if no device at address?)
+      # OSError is raised on I2C I/O error
       print("Error initialising TMP117 sensor at I2C address {:#x}: {}".format(i2c_address, str(error)))
     else:
-      print("Found TMP117 sensor with ID {} at I2C address {:#x}".format(sensor.id, i2c_address))
+      print("Found TMP117 sensor with ID {:x} at I2C address {:#x}".format(sensor.serial_number, i2c_address))
       sensors.append(sensor)
   return sensors
 
@@ -61,6 +63,9 @@ class tmp117(adafruit_tmp117.TMP117):
 
   @property
   def id(self):
+    """A unique identifier for the device."""
+    return f'{self.model:s}--{self.serial_number:08x}'.lower()
+
   @property
   def serial_number(self):
     """

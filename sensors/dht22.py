@@ -1,5 +1,5 @@
 from datetime import datetime
-import uuid
+from zlib import crc32
 from retrying import retry
 import re
 import board
@@ -33,7 +33,7 @@ def enumerate_sensors():
     except RuntimeError as error:
       print("Error initialising DHT sensor on GPIO pin {}: {}".format(gpio.id, str(error)))
     else:
-      print("Found DHT22 sensor with ID {} on GPIO pin {}".format(sensor.id, sensor.pin.id))
+      print("Found DHT22 sensor with ID {:x} on GPIO pin {}".format(sensor.serial_number, sensor.pin.id))
       sensors.append(sensor)
   return sensors
 
@@ -62,7 +62,7 @@ def try_measurement(sensor):
 class dht22(adafruit_dht.DHT22):
 
   manufacturer = 'ASAIR'
-  model = 'DHT22/AM2302'
+  model = 'DHT22'
   supported_measurements = [Measurement.TEMPERATURE,
                             Measurement.HUMIDITY]
 
@@ -88,9 +88,14 @@ class dht22(adafruit_dht.DHT22):
 
   @property
   def id(self):
-    """A unique identifier (serial number) for the device."""
-    # The DHT22 doesn't have a unique identifier that can
-    # be read, this leverages the MAC and GPIO pin used
-    # to come up with something semi-usable for this.
-    uid = uuid.getnode()
-    return f'{self.pin.id + uid:08x}'
+    """A unique identifier for the device."""
+    return f'{self.model:s}--{self.serial_number:08x}'.lower()
+
+  @property
+  def serial_number(self):
+    """The hardware identifier (serial number) for the device."""
+    # Doesn't look like the device supports reading a unique
+    # identifier, this cobbles something together from the
+    # sensor type and GPIO pin
+    unique_string = ''.join("{}{}{:#x}".format(self.manufacturer, self.model, self.pin.id).lower().split())
+    return crc32(unique_string.encode())
