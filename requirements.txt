@@ -1,17 +1,14 @@
-RPi.GPIO    # Normally already installed via copying from Docker 'build' layer
-smbus   # Normally already installed via copying from Docker 'build' layer
+RPi.GPIO
 paho-mqtt
 pyyaml
 packaging
 retrying
-adafruit-circuitpython-busdevice
+w1thermsensor>=2.*
+adafruit-circuitpython-bme280
+adafruit-circuitpython-bme680
 adafruit-circuitpython-sht31d
 adafruit-circuitpython-si7021
 # git+https://github.com/imgrant/Adafruit_CircuitPython_TMP117.git@serial_number  # adafruit-circuitpython-tmp117
 adafruit-circuitpython-ahtx0
 adafruit-circuitpython-dht
-# pimoroni-circuitpython-ltr559 — using Pimoroni non-CircuitPython library instead
-w1thermsensor>=2.*
-pimoroni-bme280
-bme680
-ltr559
+ltr559 # pimoroni-circuitpython-ltr559 — using Pimoroni non-CircuitPython library instead
