@@ -3,14 +3,19 @@ paho-mqtt
 pyyaml
 packaging
 retrying
+waiting
 w1thermsensor>=2.*
 adafruit-circuitpython-bme280
 adafruit-circuitpython-bme680
 adafruit-circuitpython-sht31d
 adafruit-circuitpython-tmp117
 adafruit-circuitpython-ahtx0
+adafruit-circuitpython-ms8607
+adafruit-circuitpython-mcp9808
+adafruit-circuitpython-hts221
+adafruit-circuitpython-tca9548a
+adafruit-circuitpython-htu21d
 adafruit-circuitpython-si7021
-# git+https://github.com/imgrant/Adafruit_CircuitPython_TMP117.git@serial_number  # adafruit-circuitpython-tmp117
-adafruit-circuitpython-ahtx0
+adafruit-circuitpython-sgp40
 adafruit-circuitpython-dht
 ltr559 # pimoroni-circuitpython-ltr559 — using Pimoroni non-CircuitPython library instead
