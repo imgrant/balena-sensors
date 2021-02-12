@@ -23,6 +23,18 @@ def enumerate_sensors():
   return sensors
 
 
+def _convert_to_integer(bytes_to_convert):
+    """Use bitwise operators to convert the bytes into integers."""
+    integer = None
+    for chunk in bytes_to_convert:
+        if not integer:
+            integer = chunk
+        else:
+            integer = integer << 8
+            integer = integer | chunk
+    return integer
+
+
 class tmp117(adafruit_tmp117.TMP117):
 
   manufacturer = 'Texas Instruments'
@@ -49,5 +61,30 @@ class tmp117(adafruit_tmp117.TMP117):
 
   @property
   def id(self):
-    """A unique identifier (serial number) for the device."""
-    return f'{self.serial_number:08x}'
+  @property
+  def serial_number(self):
+    """
+    48-bit factory-set unique ID
+    See: https://e2e.ti.com/support/sensors/f/1023/t/815716?TMP117-Reading-Serial-Number-from-EEPROM
+    """
+    eeprom1_data = bytearray(2)
+    eeprom2_data = bytearray(2)
+    eeprom3_data = bytearray(2)
+    # Fetch EEPROM registers
+    with self.i2c_device as i2c:
+        i2c.write_then_readinto(bytearray([adafruit_tmp117._EEPROM1]), eeprom1_data)
+        i2c.write_then_readinto(bytearray([adafruit_tmp117._EEPROM2]), eeprom2_data)
+        i2c.write_then_readinto(bytearray([adafruit_tmp117._EEPROM3]), eeprom3_data)
+    # Combine the 2-byte portions
+    combined_id = bytearray(
+        [
+            eeprom1_data[0],
+            eeprom1_data[1],
+            eeprom2_data[0],
+            eeprom2_data[1],
+            eeprom3_data[0],
+            eeprom3_data[1],
+        ]
+    )
+    # Convert to an integer
+    return _convert_to_integer(combined_id)
