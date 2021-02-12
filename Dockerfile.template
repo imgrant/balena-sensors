@@ -1,14 +1,11 @@
-FROM balenalib/%%BALENA_MACHINE_NAME%%-alpine-python:3.8-build as build
-RUN pip install wheel 
-# RPi.GPIO and smbus can't be installed in a '-run' image due to C bindings
-# requiring compilation (thus gcc, etc must be available); installing from
-# a git repo requires git (also not in '-run' image) — install them in this
-# layer and copy into the final layer below.
-RUN pip install RPi.GPIO smbus \
-    git+https://github.com/imgrant/Adafruit_CircuitPython_TMP117.git@serial_number
+FROM balenalib/%%BALENA_MACHINE_NAME%%-python:3.8-build as build
+RUN pip install RPi.GPIO 
+# RPi.GPIO and smbus can't be installed in a '-run' image due 
+# to C bindings requiring compilation (thus gcc, etc must be
+# available) — install them here and copy into the final layer.
 
 
-FROM balenalib/%%BALENA_MACHINE_NAME%%-alpine-python:3.8
+FROM balenalib/%%BALENA_MACHINE_NAME%%-python:3.8
 
 COPY --from=build /usr/local/lib/python3.8/site-packages/ /usr/local/lib/python3.8/site-packages/
 COPY requirements.txt /opt/requirements.txt
@@ -16,10 +13,8 @@ RUN pip install -r /opt/requirements.txt
 
 COPY bsec_bme680_linux/bsec_iaq.config /opt/bsec/
 COPY bsec_bme680_linux/bsec_bme680 /opt/bsec/
-RUN chmod +x /opt/bsec/bsec_bme680
-
 COPY sensors/ /opt/sensors/
 COPY sensor-logger /opt/
-RUN chmod +x /opt/sensor-logger
+RUN chmod +x /opt/sensor-logger /opt/bsec/bsec_bme680
 
 CMD [ "/opt/sensor-logger", "/data/sensor-config.yaml" ]
