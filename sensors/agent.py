@@ -18,7 +18,17 @@ class SensorAgent:
     'update_period':    30,
     'verbose':          True,
     'host_device':      None,
-    'sensor_types':     [],    # Must be overriden with at least one sensor type module
+    'sensor_types':     [ "ds18b20", # Default is all known sensor types, override to limit
+                          "tmp117",
+                          "mcp9808",
+                          "ms8607",
+                          "aht20",
+                          "si7021",
+                          "sht31d",
+                          "hts221",
+                          "bme280",
+                          "dht22",
+                          "bme680" ],       
     'sensor_location':  None,  # Can be a string, or dict with per-sensor entries, id->location
     'mqtt_broker':      None,  # Must be overridden
     'mqtt_port':        1883,
