@@ -1,14 +1,14 @@
 class Measurement():
 
-  TEMPERATURE         = { 'name': 'temperature',     'units': '°C',   'precision': 3,  'ha_device_class': 'temperature',  'ha_title': 'Temperature'     }
-  PRESSURE            = { 'name': 'pressure',        'units': 'hPa',  'precision': 2,  'ha_device_class': 'pressure',     'ha_title': 'Pressure'        }
-  HUMIDITY            = { 'name': 'humidity',        'units': '%rh',  'precision': 2,  'ha_device_class': 'humidity',     'ha_title': 'Humidity'        }
-  PROXIMITY           = { 'name': 'proximity',       'units': None,   'precision': 0,  'ha_device_class': None,           'ha_title': 'Proximity'       }
-  LIGHT               = { 'name': 'light',           'units': 'lx',   'precision': 5,  'ha_device_class': 'illuminance',  'ha_title': 'Light'           }
-  AIR_QUALITY         = { 'name': 'iaq',             'units': None,   'precision': 2,  'ha_device_class': None,           'ha_title': 'Air Quality'     }
-  IAQ_ACCURACY        = { 'name': 'iaq_accuracy',    'units': None,   'precision': 0,  'ha_device_class': None,           'ha_title': 'IAQ Accuracy'    }
-  STATIC_AIR_QUALITY  = { 'name': 's_iaq',           'units': None,   'precision': 2,  'ha_device_class': None,           'ha_title': 'Static IAQ'      }
-  S_IAQ_ACCURACY      = { 'name': 's_iaq_accuracy',  'units': None,   'precision': 0,  'ha_device_class': None,           'ha_title': 'S-IAQ Accuracy'  }
+  TEMPERATURE         = { 'name': 'temperature',     'units': '°C',     'precision': 3,  'ha_device_class': 'temperature',  'ha_title': 'Temperature'     }
+  PRESSURE            = { 'name': 'pressure',        'units': 'hPa',    'precision': 2,  'ha_device_class': 'pressure',     'ha_title': 'Pressure'        }
+  HUMIDITY            = { 'name': 'humidity',        'units': '%rh',    'precision': 2,  'ha_device_class': 'humidity',     'ha_title': 'Humidity'        }
+  PROXIMITY           = { 'name': 'proximity',       'units': 'count',  'precision': 0,  'ha_device_class': None,           'ha_title': 'Proximity'       }
+  LIGHT               = { 'name': 'light',           'units': 'lx',     'precision': 5,  'ha_device_class': 'illuminance',  'ha_title': 'Light'           }
+  AIR_QUALITY         = { 'name': 'iaq',             'units': 'IAQ',    'precision': 2,  'ha_device_class': None,           'ha_title': 'Air Quality'     }
+  IAQ_ACCURACY        = { 'name': 'iaq_accuracy',    'units': None,     'precision': 0,  'ha_device_class': None,           'ha_title': 'IAQ Accuracy'    }
+  STATIC_AIR_QUALITY  = { 'name': 's_iaq',           'units': 'IAQ',    'precision': 2,  'ha_device_class': None,           'ha_title': 'Static IAQ'      }
+  S_IAQ_ACCURACY      = { 'name': 's_iaq_accuracy',  'units': None,     'precision': 0,  'ha_device_class': None,           'ha_title': 'S-IAQ Accuracy'  }
   #
   # Accuracy signal is an integer, 0-3, representing the following states:
   #
