@@ -30,6 +30,7 @@ class bme280(adafruit_bme280.Adafruit_BME280_I2C):
   supported_measurements = [Measurement.TEMPERATURE,
                             Measurement.PRESSURE,
                             Measurement.HUMIDITY]
+  _serial = None
 
   def __init__(self,
                i2c_addr:  Optional[int]     = I2C_ADDRESSES[0],
@@ -69,7 +70,12 @@ class bme280(adafruit_bme280.Adafruit_BME280_I2C):
   @property
   def serial_number(self):
     """The hardware identifier (serial number) for the device."""
-    # See: https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/Unique-IDs-in-Bosch-Sensors/m-p/6020/highlight/true#M62
-    i = self._read_register(0x83, 4)
-    serial = (((i[3] + (i[2] << 8)) & 0x7fff) << 16) + (i[1] << 8) + i[0]
-    return serial
+    # Cached property — the serial number is only fetched once,
+    # thereafter the stored property is returned. This avoids
+    # I2C errors causing the serial number to change, which I 
+    # observed with my BME680
+    if self._serial is None:
+      # See: https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/Unique-IDs-in-Bosch-Sensors/m-p/6020/highlight/true#M62
+      i = self.bme680_i2c._read(0x83, 4)
+      self._serial = (((i[3] + (i[2] << 8)) & 0x7fff) << 16) + (i[1] << 8) + i[0]
+    return self._serial
