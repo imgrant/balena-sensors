@@ -16,6 +16,7 @@ class SensorAgent:
 
   default_config = {
     'update_period':    30,
+    'valid_time':       600,
     'verbose':          True,
     'host_device':      None,
     'sensor_types':     [ "ds18b20", # Default is all known sensor types, override to limit
@@ -196,7 +197,7 @@ class SensorAgent:
       config_data['name']                   = "{} ({}) {}".format(sensor.model, sensor.id, measurement['ha_title'])
       config_data['value_template']         = "{{{{ value_json.{} | round({}) }}}}".format(measurement['name'], self.config["precision_{}".format(measurement['name'])])
       config_data['force_update']           = True
-      config_data['expire_after']           = int(self.config['update_period'])*2
+      config_data['expire_after']           = self.config['valid_time']
       self.publish_message(topic=config_topic, payload=json.dumps(config_data, indent=2), qos=1, retain=True)
 
 

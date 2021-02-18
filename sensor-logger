@@ -30,6 +30,7 @@ def main(args):
   mqtt_username = os.environ.get('MQTT_USERNAME')
   mqtt_password = os.environ.get('MQTT_PASSWORD')
   update_period = os.environ.get('UPDATE_PERIOD')   # Number in seconds
+  valid_time    = os.environ.get('VALID_TIME')      # Number in seconds
   verbose       = os.environ.get('VERBOSE')         # Any pseudo-boolean string such as: yes, no, on, off, true, false, 1, 0
   sensor_types  = os.environ.get('SENSOR_TYPES')    # Comma-separated list of sensor types, e.g. 'ds18b20, bme280'
   # location can be either a simple string (for single/all sensors),
@@ -56,6 +57,9 @@ def main(args):
 
   if update_period is not None:
     config['update_period'] = int(update_period)
+
+  if valid_time is not None:
+    config['valid_time'] = int(valid_time)
   
   if verbose is not None:
     config['verbose'] = bool(strtobool(verbose))
