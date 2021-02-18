@@ -53,7 +53,7 @@ class aht20(adafruit_ahtx0.AHTx0):
   @property
   def id(self):
     """A unique identifier for the device."""
-    return f'{self.model.replace('-',''):s}--{self.serial_number:08x}'.lower()
+    return "{model:s}--{serial:08x}".format(model=self.model.replace('-',''), serial=self.serial_number).lower()
 
   @property
   def serial_number(self):
