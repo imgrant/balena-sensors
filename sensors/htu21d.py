@@ -41,7 +41,7 @@ def _convert_to_integer(bytes_to_convert):
 class htu21d(adafruit_htu21d.HTU21D):
 
   manufacturer = 'Measurement Specialities'
-  model = 'HTU21D-F'
+  model = 'HTU21D'
   supported_measurements = [Measurement.TEMPERATURE,
                             Measurement.HUMIDITY]
 
@@ -71,7 +71,7 @@ class htu21d(adafruit_htu21d.HTU21D):
   @property
   def id(self):
     """A unique identifier for the device."""
-    return f'{self.model:s}--{self.serial_number:08x}'.lower()
+    return f'{self.model.replace('-',''):s}--{self.serial_number:08x}'.lower()
 
   @property
   def serial_number(self):

@@ -89,7 +89,7 @@ class dht22(adafruit_dht.DHT22):
   @property
   def id(self):
     """A unique identifier for the device."""
-    return f'{self.model:s}--{self.serial_number:08x}'.lower()
+    return f'{self.model.replace('-',''):s}--{self.serial_number:08x}'.lower()
 
   @property
   def serial_number(self):

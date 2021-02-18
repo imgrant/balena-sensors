@@ -72,4 +72,4 @@ class si7021(adafruit_si7021.SI7021):
   @property
   def id(self):
     """A unique identifier for the device."""
-    return f'{self.model:s}--{self.serial_number:08x}'.lower()
+    return f'{self.model.replace('-',''):s}--{self.serial_number:08x}'.lower()

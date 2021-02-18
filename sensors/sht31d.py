@@ -50,4 +50,4 @@ class sht31d(adafruit_sht31d.SHT31D):
   @property
   def id(self):
     """A unique identifier for the device."""
-    return f'{self.model:s}--{self.serial_number:08x}'.lower()
+    return f'{self.model.replace('-',''):s}--{self.serial_number:08x}'.lower()
