@@ -76,6 +76,6 @@ class bme280(adafruit_bme280.Adafruit_BME280_I2C):
     # observed with my BME680
     if self._serial is None:
       # See: https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/Unique-IDs-in-Bosch-Sensors/m-p/6020/highlight/true#M62
-      i = self.bme680_i2c._read(0x83, 4)
+      i = self._read_register(0x83, 4)
       self._serial = (((i[3] + (i[2] << 8)) & 0x7fff) << 16) + (i[1] << 8) + i[0]
     return self._serial
