@@ -19,17 +19,20 @@ class SensorAgent:
     'valid_time':       600,
     'verbose':          True,
     'host_device':      None,
-    'sensor_types':     [ "ds18b20", # Default is all known sensor types, override to limit
-                          "tmp117",
+    'sensor_types':     [ 
+                          "aht20", # Default is all known sensor types, override to limit
+                          "bme280",
+                          "bme680",
+                          "dht22",
+                          "ds18b20",
+                          "hts221",
+                          "htu21d",
                           "mcp9808",
                           "ms8607",
-                          "aht20",
-                          "si7021",
                           "sht31d",
-                          "hts221",
-                          "bme280",
-                          "dht22",
-                          "bme680" ],       
+                          "si7021",
+                          "tmp117"
+                        ],       
     'sensor_location':  None,  # Can be a string, or dict with per-sensor entries, id->location
     'mqtt_broker':      None,  # Must be overridden
     'mqtt_port':        1883,
