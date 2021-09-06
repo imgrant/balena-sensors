@@ -33,7 +33,8 @@ class SensorAgent:
                           "si7021",
                           "tmp117"
                         ],       
-    'sensor_location':  None,  # Can be a string, or dict with per-sensor entries, id->location
+    'sensor_location':  None,  # Can be a string (for all/single sensor(s)), or dict with per-sensor entries, id->location
+    'sensor_offset':    0,     # Single value or dict with per-sensor id->offset
     'mqtt_broker':      None,  # Must be overridden
     'mqtt_port':        1883,
     'mqtt_username':    None,
@@ -150,8 +151,14 @@ class SensorAgent:
           readings = {}
           readings['timestamp'] = str(getattr(sensor, 'timestamp'))
           for measurement in sensor.supported_measurements:
-            # Round and format value to string for MQTT message
+            # Read the value and optionally correct using offset
             value = getattr(sensor, measurement['name'])
+            if type(self.config['sensor_offset']) is dict:
+              if sensor.id in self.config['sensor_offset']:
+                value += self.config['sensor_offset'][sensor.id]
+            else:
+              value += self.config['sensor_offset']
+            # Round and format value to string for MQTT message
             if value is not None:
               readings[measurement['name']] = round(value, measurement['precision'] if measurement['precision']>0 else None)
           self.info("Publishing readings for sensor {}: {}".format(sensor.id, ", ".join(['{0}={1}'.format(k, v) for k,v in readings.items()])))

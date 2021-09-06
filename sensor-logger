@@ -34,9 +34,13 @@ def main(args):
   verbose       = os.environ.get('VERBOSE')         # Any pseudo-boolean string such as: yes, no, on, off, true, false, 1, 0
   sensor_types  = os.environ.get('SENSOR_TYPES')    # Comma-separated list of sensor types, e.g. 'ds18b20, bme280'
   # location can be either a simple string (for single/all sensors),
-  # or a comma-separated list of id=location entries for multiple sensors,,
+  # or a comma-separated list of id=location entries for multiple sensors,
   # e.g. 'id0001=Bedroom,id002=Living Room'
   location      = os.environ.get('LOCATION')
+  # sensor_offset can be a single value (applied to all sensors), or
+  # a comma-separated list of id=offset entries,
+  # e.g. 'id0001=0.5,id0002=-1.5'
+  sensor_offset = os.environ.get('SENSOR_OFFSET')
   # Set the via_device to the Balena device hostname     
   balena_host   = os.environ.get('BALENA_DEVICE_NAME_AT_INIT')
 
@@ -72,6 +76,12 @@ def main(args):
       config['sensor_location'] = dict(i.strip().split('=') for i in location.split(','))
     else:
       config['sensor_location'] = str(location).strip()
+
+  if sensor_offset is not None:
+    if '=' in sensor_offset and ',' in sensor_offset:
+      config['sensor_offset'] = { str(k):float(v) for k,v in (i.strip().split('=') for i in sensor_offset.split(',')) }
+    else:
+      config['sensor_offset'] = float(sensor_offset.strip())
 
   if balena_host is not None:
     config['host_device'] = balena_host

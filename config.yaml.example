@@ -1,14 +1,17 @@
 ---
   update_period: 30   # Sleep period, in seconds, between reading the sensors
-  sensor_types:       # List of sensor modules to load; at least one must be specified
+  valid_time: 600     # Expiry time for sensor value in Home Assistant
+  sensor_types:       # List of sensor modules to load; at least one must be specified (if omitted, all types are used)
     - ds18b20
     - bme280
     - sht3x
   verbose: True            # Set to false to quell informative output
   host_device: mygateway   # Optional, name of the device that these sensors are routed via (e.g. a Z-Wave hub, etc)
-  sensor_name:   # Optional, this can be a string (for a single sensor), or a dict of id:name entries, for multiple sensors
+  sensor_location:         # Optional, this can be a string (for a single sensor), or a dict of id:name entries, for multiple sensors, e.g.
     "id00001": Living Room
-  mqtt_broker:     mqtt-broker-hostname   # Hostname or IP address of the MQTT broker. This parameter is mandatory; defaults apply to others
+  sensor_offset:           # Optional (default 0), this is used to adjust the reported value from the sensor. Either a single value for all sensors, or a dict of id:offset, e.g.
+    "id00001": 1.5
+  mqtt_broker:     mqtt-broker-host.lan   # Hostname or IP address of the MQTT broker. This parameter is mandatory; defaults apply to others
   mqtt_port:       1883                   # Optional, if not using the default port (1883) on the MQTT broker
   mqtt_username:   myuser                 # Optional, if your MQTT broker requires such
   mqtt_password:   secret123              # Optional
@@ -18,9 +21,9 @@
   # values shown here are those used for the MQTT message, it 
   # therefore makes no sense to use a greater precision in Home
   # Assistant than these values)
-  precision_temperature: 3
-  precision_pressure:    2
-  precision_humidity:    2
+  precision_temperature: 1
+  precision_pressure:    1
+  precision_humidity:    1
   precision_proximity:   0
-  precision_lux:         5
+  precision_light:       5
 ...
