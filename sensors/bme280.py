@@ -2,7 +2,7 @@ from typing import Optional
 from datetime import datetime
 from busio import I2C
 from board import SCL, SDA
-import adafruit_bme280
+from adafruit_bme280 import advanced as adafruit_bme280
 from .measurements import Measurement, MeasurementError
 
 I2C_ADDRESSES = [ 0x76, 0x77 ]
