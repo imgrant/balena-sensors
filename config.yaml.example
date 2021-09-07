@@ -21,9 +21,9 @@
   # values shown here are those used for the MQTT message, it 
   # therefore makes no sense to use a greater precision in Home
   # Assistant than these values)
-  precision_temperature: 1
-  precision_pressure:    1
-  precision_humidity:    1
+  precision_temperature: 3
+  precision_pressure:    2
+  precision_humidity:    2
   precision_proximity:   0
   precision_light:       5
 ...
