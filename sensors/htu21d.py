@@ -48,6 +48,7 @@ class htu21d(adafruit_htu21d.HTU21D):
   def __init__(self, i2c_dev, i2c_addr=I2C_ADDRESS):
     super().__init__(i2c_bus=i2c_dev, address=i2c_addr)
     self._temperature = None
+    self._humidity = None
 
   def update_sensor(self):
     try:
