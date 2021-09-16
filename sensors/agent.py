@@ -31,7 +31,8 @@ class SensorAgent:
                           "ms8607",
                           "sht31d",
                           "si7021",
-                          "tmp117"
+                          "tmp117",
+                          "ltr559"
                         ],       
     'sensor_location':  None,  # Can be a string (for all/single sensor(s)), or dict with per-sensor entries, id->location
     'sensor_offset':    0,     # Single value or dict with per-sensor id->offset
@@ -44,7 +45,7 @@ class SensorAgent:
     'precision_pressure':               1,
     'precision_humidity':               1,
     'precision_proximity':              0,
-    'precision_light':                  5,
+    'precision_light':                  0,
     'precision_iaq':                    0,
     'precision_iaq_accuracy':           0,
     'precision_s_iaq':                  0,

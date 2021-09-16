@@ -1,6 +1,7 @@
 FROM balenalib/%%BALENA_MACHINE_NAME%%-python:3.8-build as build
-RUN pip install RPi.GPIO 
-# RPi.GPIO and smbus can't be installed in a '-run' image due 
+COPY requirements-build.txt /opt/requirements.txt
+RUN pip install -r /opt/requirements.txt
+# Packages that can't be installed in a '-run' image due 
 # to C bindings requiring compilation (thus gcc, etc must be
 # available) — install them here and copy into the final layer.
 

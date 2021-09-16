@@ -1,4 +1,3 @@
-RPi.GPIO
 paho-mqtt
 pyyaml
 packaging
@@ -13,9 +12,10 @@ adafruit-circuitpython-ahtx0
 adafruit-circuitpython-ms8607
 adafruit-circuitpython-mcp9808
 adafruit-circuitpython-hts221
-adafruit-circuitpython-tca9548a
 adafruit-circuitpython-htu21d
 adafruit-circuitpython-si7021
 adafruit-circuitpython-sgp40
 adafruit-circuitpython-dht
-ltr559 # pimoroni-circuitpython-ltr559 — using Pimoroni non-CircuitPython library instead
+adafruit-circuitpython-tca9548a
+smbus2
+ltr559 # pimoroni-circuitpython-ltr559 — using regular Pimoroni library instead because the CircuitPython version isn't on PyPI

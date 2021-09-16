@@ -25,5 +25,5 @@
   precision_pressure:    2
   precision_humidity:    2
   precision_proximity:   0
-  precision_light:       5
+  precision_light:       3
 ...
